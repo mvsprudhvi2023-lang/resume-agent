@@ -15,3 +15,8 @@ class ResumeResponse(BaseModel):
     full_name: str
     status: str
     message: str
+
+
+
+class ParseRequest(BaseModel):
+    job_description: str = Field(min_length=20)
