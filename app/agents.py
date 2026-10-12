@@ -51,3 +51,31 @@ Target job (parsed):
 {json.dumps(parsed_job, indent=2)}
 """
     return _to_json(ask_llm(prompt))
+
+
+
+def review_resume(candidate: dict, parsed_job: dict, resume: dict) -> dict:
+    prompt = f"""You are a strict resume reviewer.
+Compare the resume content with the target job and the candidate's real facts.
+
+RULES:
+- Suggestions must never tell the candidate to claim skills or experience they do not have.
+- If something is missing, suggest learning it or gaining it honestly.
+
+Return ONLY valid JSON with these keys:
+- ats_score (integer from 0 to 100, how well the resume matches the job keywords)
+- matched_keywords (list of job keywords that appear in the resume)
+- missing_keywords (list of job keywords that do not appear in the resume)
+- unsupported_claims (list of statements in the resume that are NOT supported by the candidate facts, empty list if none)
+- suggestions (list of up to 3 short, honest suggestions)
+
+Candidate facts:
+{json.dumps(candidate, indent=2)}
+
+Target job (parsed):
+{json.dumps(parsed_job, indent=2)}
+
+Resume content:
+{json.dumps(resume, indent=2)}
+"""
+    return _to_json(ask_llm(prompt))

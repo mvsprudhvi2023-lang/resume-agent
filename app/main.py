@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from app.models import ResumeRequest, ResumeResponse, ParseRequest, WriteRequest
 from app.agents import parse_job_description, write_resume_content
+from app.orchestrator import run_pipeline, PipelineError
 
 app = FastAPI(title="Enterprise AI Resume Generator")
 
@@ -60,5 +61,25 @@ def write_resume(request: WriteRequest):
         }
         content = write_resume_content(candidate, parsed_job)
         return {"parsed_job": parsed_job, "resume": content}
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"LLM error: {e}")
+
+
+
+@app.post("/generate-resume")
+def generate_resume(request: WriteRequest):
+    candidate = {
+        "full_name": request.full_name,
+        "skills": request.skills,
+        "experience_years": request.experience_years,
+        "achievements": request.achievements,
+    }
+    try:
+        return run_pipeline(candidate, request.job_description)
+    except PipelineError as e:
+        raise HTTPException(
+            status_code=502,
+            detail={"failed_step": e.step, "result": e.detail},
+        )
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"LLM error: {e}")
