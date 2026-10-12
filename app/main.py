@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
-from app.models import ResumeRequest, ResumeResponse, ParseRequest
-from app.agents import parse_job_description
+from app.models import ResumeRequest, ResumeResponse, ParseRequest, WriteRequest
+from app.agents import parse_job_description, write_resume_content
 
 app = FastAPI(title="Enterprise AI Resume Generator")
 
@@ -43,5 +43,22 @@ def get_resume(resume_id: int):
 def parse_job(request: ParseRequest):
     try:
         return parse_job_description(request.job_description)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"LLM error: {e}")
+
+
+
+@app.post("/write-resume")
+def write_resume(request: WriteRequest):
+    try:
+        parsed_job = parse_job_description(request.job_description)
+        candidate = {
+            "full_name": request.full_name,
+            "skills": request.skills,
+            "experience_years": request.experience_years,
+            "achievements": request.achievements,
+        }
+        content = write_resume_content(candidate, parsed_job)
+        return {"parsed_job": parsed_job, "resume": content}
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"LLM error: {e}")
