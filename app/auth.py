@@ -6,6 +6,7 @@ import jwt
 from dotenv import load_dotenv
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
+from app.audit import audit
 
 load_dotenv()
 
@@ -71,5 +72,6 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
 
 def require_admin(user: dict = Depends(get_current_user)) -> dict:
     if user["role"] != "admin":
+        audit(user, "access_denied", reason="admin required")
         raise HTTPException(status_code=403, detail="Admin access required")
     return user
