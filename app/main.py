@@ -1,7 +1,7 @@
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 
-from app.agents import parse_job_description, write_resume_content
+from app.agents import parse_job_description
 from app.audit import audit
 from app.auth import authenticate, create_token, get_current_user, require_admin
 from app.models import ParseRequest, ResumeRequest, ResumeResponse, WriteRequest
@@ -65,24 +65,7 @@ def get_resume(resume_id: int, admin: dict = Depends(require_admin)):
 def parse_job(request: ParseRequest, user: dict = Depends(get_current_user)):
     audit(user, "parse_job")
     try:
-        return parse_job_description(request.job_description)
-    except Exception as e:
-        raise HTTPException(status_code=502, detail=f"LLM error: {e}")
-
-
-@app.post("/write-resume")
-def write_resume(request: WriteRequest, user: dict = Depends(get_current_user)):
-    audit(user, "write_resume")
-    try:
-        parsed_job = parse_job_description(request.job_description)
-        candidate = {
-            "full_name": request.full_name,
-            "skills": request.skills,
-            "experience_years": request.experience_years,
-            "achievements": request.achievements,
-        }
-        content = write_resume_content(candidate, parsed_job)
-        return {"parsed_job": parsed_job, "resume": content}
+        return parse_job_description(mask_pii(request.job_description))
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"LLM error: {e}")
 

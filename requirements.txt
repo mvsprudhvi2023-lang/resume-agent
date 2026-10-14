@@ -1,0 +1,11 @@
+bcrypt==5.0.0
+fastapi==0.142.2
+google-genai==2.29.0
+httpx==0.28.1
+mcp==1.30.0
+pydantic==2.13.5
+PyJWT==2.15.1
+pytest==9.1.1
+python-dotenv==1.2.4
+python-multipart==0.0.32
+uvicorn==0.54.0
